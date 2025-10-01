@@ -55,7 +55,10 @@ function validate($movie)
 
 function getMovies()
 {
-  global $movies;
+  global $db;
+  $sql = "SELECT * FROM movies";
+  $result = $db->query($sql);
+  $movies = $result->fetchAll(PDO::FETCH_ASSOC);
 
   return $movies;
 }
@@ -71,28 +74,36 @@ function searchMovies()
 
 function getMovie($id)
 {
-  global $movies;
+  global $db;
+  // creating the prepared statement
+  $sql = "SELECT * FROM moives WHERE id = :id";
+  // registering the prepared statement
+  $stmt = $db->prepare($sql);
 
-  return current(array_filter($movies, function ($movie) use ($id) {
-    return $movie["id"] == $id;
-  }));
+  $stmt->execute(['id' => $id]);
+  $movie = $stmt->fetch();
+  return $movie;
+
+
+
+
 }
 
 function addMovie($movie)
 {
-  global $movies;
+  global $db;
 
-  array_push($movies, [
-    'id' => end($movies)['id'] + 1,
-    'title' => $movie['title'],
-    'director' => $movie['director'],
-    'year' => $movie['year'],
-    'genre' => $movie['genre']
+  $sql = "INSERT INTO movies (title, director, year, genre_id)
+          VALUES (:title, :director, :year, :genre_id)";
+  $stmt = $db->prepare($sql);
+  $stmt->execute([
+    ':title' => $movie['title'],
+    ':director' => $movie['director'],
+    ':year' => $movie['year'],
+    ':genre_id' => array_search($movie['genre'], $genres) + 1
   ]);
 
-  $_SESSION['movies'] = $movies;
-
-  return end($movies)['id'];
+  return $db->lastInsertId();
 }
 
 function updateMovie($movie)

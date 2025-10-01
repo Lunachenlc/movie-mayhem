@@ -1,13 +1,21 @@
 <?php
-session_start();
 
-$movies = json_decode(file_get_contents('movies.json'), 1);
+$dsn = 'sqlite:movie_mayhem.sqlite';
 
-if (isset($_SESSION['movies'])) {
-  $movies = $_SESSION['movies'];
-} else {
-  $_SESSION['movies'] = $movies;
+try {
+  $db = new PDO($dsn);
+
+} catch (PDOException $e) {
+  echo $e->getMessage();
+  exit();
+
 }
+
+
+$sql = "SELECT * FROM genres";
+$result = $db->query($sql);
+$genres = $result->fetchAll(PDO::FETCH_COLUMN,1);
+
 
 $genres = [
   'Fantasy',
